@@ -1,0 +1,75 @@
+name: Continuous Integration
+on:
+  push:
+    branches: [ "main", "fix*" ]
+  pull_request:
+    branches: [ "main", "fix*" ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+  SCCACHE_GHA_ENABLED: "true"
+        
+jobs:
+  Test:
+    name: ${{ matrix.config.os }} ${{ matrix.config.compiler }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          #- { os: "ubuntu-24.04", compiler: "gcc", cmake_cxx: "/usr/bin/g++-14" }
+          #- { os: "ubuntu-24.04", compiler: "llvm", cmake_cxx: "/usr/lib/llvm-18/bin/clang++" }
+          #- { os: "macos-14", compiler: "gcc", cmake_cxx: "/opt/homebrew/bin/g++-14" }
+          # NOTE: Won't compile; llvm not supported on arm?
+          #- { os: "macos-14", compiler: "llvm", cmake_cxx: "/usr/lib/llvm-18/bin/clang++" }
+          #- { os: windows-2022, compiler: "msvc", cmake_cxx: "cl" }
+          - { os: windows-2022, compiler: "llvm", cmake_cxx: "clang++" }
+          #- { os: windows-2022, compiler: "gcc", cmake_cxx: "g++" }
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run sccache-cache
+        if: runner.os == 'Windows'
+        uses: mozilla-actions/sccache-action@v0.0.6
+
+    #   - name: Cache
+    #     uses: actions/cache@v4
+    #     with:
+    #       path: |
+    #         ${{github.workspace}}/build
+    #       key: ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', './vcpkg.json') }}
+    #       restore-keys: |
+    #         ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}-
+
+      - name: Install C++ Tools
+        uses: aminya/setup-cpp@v1
+        with:
+          vcvarsall: ${{ runner.os == 'Windows' && matrix.config.compiler == 'msvc' }}
+          ninja: true
+
+      - name: Configure CMake (non-Windows)
+        if: runner.os != 'Windows'
+        # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+        # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+        run: cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_CXX_COMPILER=${{matrix.config.cmake_cxx}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+      - name: Configure CMake (Windows msvc)
+        if: runner.os == 'Windows' && matrix.config.compiler == 'msvc'
+        run: cmake -B ${{github.workspace}}/build
+
+        # NOTE: {{env.VCPKG_INSTALLATION_ROOT}} does not seem to be working
+      - name: Configure CMake (Windows non-msvc)
+        if: runner.os == 'Windows' && matrix.config.compiler != 'msvc'
+        run: cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_CXX_COMPILER="${{matrix.config.cmake_cxx}}" -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+    
+      - name: Build
+        # Build your program with the given configuration
+        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+    
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        # Execute tests defined by the CMake configuration.
+        # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+        run: ctest -C ${{env.BUILD_TYPE}}
