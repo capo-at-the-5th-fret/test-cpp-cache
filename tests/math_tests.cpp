@@ -33,6 +33,7 @@ TEST_CASE("multiply", "[math]")
     CHECK(multiply(-1, 0) == 0);
     CHECK(multiply(-1, 1) == -1);
     CHECK(multiply(1, -1) == -1);
+    CHECK(multiply(0, 0) == 0);
 }
 
 TEST_CASE("divide", "[math]")
