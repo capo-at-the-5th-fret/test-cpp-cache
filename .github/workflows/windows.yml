@@ -30,14 +30,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run sccache-cache
-        if: runner.os == 'Windows'
-        uses: mozilla-actions/sccache-action@v0.0.6
-
-      - name: ccache
-        if: runner.os != 'Windows'
-        uses: hendrikmuhs/ccache-action@v1.2
-
       - name: Cache
         uses: actions/cache@v4
         with:
@@ -53,6 +45,14 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', './vcpkg.json') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}-
+
+      - name: Build Cache (Windows sccache)
+        if: runner.os == 'Windows'
+        uses: mozilla-actions/sccache-action@v0.0.6
+
+      - name: Build Cache (non-Windows ccache)
+        if: runner.os != 'Windows'
+        uses: hendrikmuhs/ccache-action@v1.2
 
       - name: Install C++ Tools
         uses: aminya/setup-cpp@v1
