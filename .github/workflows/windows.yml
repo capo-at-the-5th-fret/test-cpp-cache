@@ -6,10 +6,9 @@ on:
     branches: [ "main", "fix*" ]
 
 env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
   SCCACHE_GHA_ENABLED: "true"
-        
+
 jobs:
   Test:
     name: ${{ matrix.config.os }} ${{ matrix.config.compiler }}
@@ -18,11 +17,12 @@ jobs:
       fail-fast: false
       matrix:
         config:
+          # Reference: https://github.com/actions/runner-images
           - { os: "ubuntu-24.04", compiler: "gcc", cmake_gen: "Ninja Multi-Config", cmake_cxx: "/usr/bin/g++-14", cmake_cxx_launcher: "ccache" }
           - { os: "ubuntu-24.04", compiler: "llvm", cmake_gen: Ninja Multi-Config, cmake_cxx: "/usr/lib/llvm-18/bin/clang++", cmake_cxx_launcher: "ccache" }
-          - { os: "macos-14", compiler: "gcc", cmake_gen: "Ninja Multi-Config", cmake_cxx: "/opt/homebrew/bin/g++-14", cmake_cxx_launcher: "ccache" }
+          - { os: "macos-15", compiler: "gcc", cmake_gen: "Ninja Multi-Config", cmake_cxx: "/opt/homebrew/bin/g++-14", cmake_cxx_launcher: "ccache" }
           # NOTE: Won't compile; llvm not supported on arm?
-          #- { os: "macos-14", compiler: "llvm", cmake_gen: "Ninja Multi-Config", cmake_cxx: "/usr/lib/llvm-18/bin/clang++", cmake_cxx_launcher: "ccache" }
+          - { os: "macos-15", compiler: "llvm", cmake_gen: "Ninja Multi-Config", cmake_cxx: "/usr/lib/llvm-18/bin/clang++", cmake_cxx_launcher: "ccache" }
           - { os: windows-2022, compiler: "msvc", cmake_gen: "Ninja Multi-Config", cmake_cxx: "cl", cmake_cxx_launcher: "sccache" }
           - { os: windows-2022, compiler: "llvm", cmake_gen: "Ninja Multi-Config", cmake_cxx: "clang++", cmake_cxx_launcher: "sccache" }
           - { os: windows-2022, compiler: "gcc", cmake_gen: "Ninja Multi-Config", cmake_cxx: "g++", cmake_cxx_launcher: "sccache" }
@@ -65,6 +65,4 @@ jobs:
     
       - name: Test
         working-directory: ./build
-        # Execute tests defined by the CMake configuration.
-        # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
         run: ctest -C ${{env.BUILD_TYPE}}
