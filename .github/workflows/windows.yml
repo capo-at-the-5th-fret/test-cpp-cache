@@ -8,7 +8,7 @@ on:
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
-  SCCACHE_GHA_ENABLED: "true"
+  #SCCACHE_GHA_ENABLED: "true"
         
 jobs:
   Test:
@@ -28,17 +28,18 @@ jobs:
           #- { os: windows-2022, compiler: "gcc", cmake_cxx: "g++" }
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-    #   - name: Run sccache-cache
-    #     if: runner.os == 'Windows'
-    #     uses: mozilla-actions/sccache-action@v0.0.6
+      - name: Run sccache-cache
+        if: runner.os == 'Windows'
+        uses: mozilla-actions/sccache-action@v0.0.6
 
       - name: Cache
         uses: actions/cache@v4
         with:
           path: |
             ./build
+            ~/.cache/sccache/
           key: ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', './vcpkg.json') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}-
