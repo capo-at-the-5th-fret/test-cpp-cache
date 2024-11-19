@@ -52,6 +52,8 @@ jobs:
       - name: Cache (non-Windows)
         if: runner.os != 'Windows'
         uses: hendrikmuhs/ccache-action@v1.2
+        # with:
+        #   key: ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}
 
       # Reference: https://github.com/Mozilla-Actions/sccache-action
       - name: Cache (Windows)
