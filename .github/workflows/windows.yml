@@ -30,29 +30,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # - name: Cache
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: |
-      #       ~/.cache/ccache
-      #       ~/.ccache
-      #       ~/.config/ccache
-      #       ~/Library/Caches/ccache
-      #       ${{ env.LOCALAPPDATA }}/ccache
-      #       ${{ env.XDG_CACHE_HOME }}/ccache
-      #       ${{ env.LOCALAPPDATA }}/Mozilla/sccache
-      #       ${{ env.XDG_CACHE_HOME }}/Mozilla/sccache
-      #     key: ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', './vcpkg.json') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}-
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./build
+          key: ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', './vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}-
 
-      - name: Cache (Windows)
-        if: runner.os == 'Windows'
-        uses: mozilla-actions/sccache-action@v0.0.6
+      # - name: Cache (Windows)
+      #   if: runner.os == 'Windows'
+      #   uses: mozilla-actions/sccache-action@v0.0.6
 
-      - name: Cache (non-Windows)
-        if: runner.os != 'Windows'
-        uses: hendrikmuhs/ccache-action@v1.2
+      # - name: Cache (non-Windows)
+      #   if: runner.os != 'Windows'
+      #   uses: hendrikmuhs/ccache-action@v1.2
 
       - name: Install C++ Tools
         uses: aminya/setup-cpp@v1
