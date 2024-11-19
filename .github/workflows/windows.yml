@@ -53,8 +53,9 @@ jobs:
           vcvarsall: ${{ runner.os == 'Windows' && matrix.config.compiler == 'msvc' }}
           ninja: true
 
+      # -DCMAKE_CXX_COMPILER_LAUNCHER="${{matrix.config.cmake_cxx_launcher}}"
       - name: Configure CMake
-        run: cmake -B ./build -G "${{matrix.config.cmake_gen}}" -DCMAKE_CXX_COMPILER="${{matrix.config.cmake_cxx}}" -DCMAKE_CXX_COMPILER_LAUNCHER="${{matrix.config.cmake_cxx_launcher}}"
+        run: cmake -B ./build -G "${{matrix.config.cmake_gen}}" -DCMAKE_CXX_COMPILER="${{matrix.config.cmake_cxx}}"
     
       - name: Build
         run: cmake --build ./build --config ${{env.BUILD_TYPE}}
