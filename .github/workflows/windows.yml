@@ -30,24 +30,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache (non-Windows)
-        if: runner.os != 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: |
-            ./build
-          key: ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', './vcpkg.json') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}-
-
-      # NOTE: If the above cache doesn't work (it's faster when it works), use
-      # the following instead. Be sure to update the CMake config step below to
-      # use a launcher
+      # NOTE: This cache is faster for non-Windows than ccache, but it may not
+      # work. It acts flakey when using it for Windows. Recommend: use ccache
+      # for non-Windows and sccache for Windows (ccache is flakey on Windows)
       # - name: Cache (non-Windows)
       #   if: runner.os != 'Windows'
-      #   uses: hendrikmuhs/ccache-action@v1.2
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ./build
+      #     key: ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', './vcpkg.json') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}-
 
-      # NOTE: Windows builds flake out using standard actions cache
+      - name: Cache (non-Windows)
+        if: runner.os != 'Windows'
+        uses: hendrikmuhs/ccache-action@v1.2
+
       - name: Cache (Windows)
         if: runner.os == 'Windows'
         uses: mozilla-actions/sccache-action@v0.0.6
@@ -58,13 +57,7 @@ jobs:
           vcvarsall: ${{ runner.os == 'Windows' && matrix.config.compiler == 'msvc' }}
           ninja: true
 
-      - name: Configure CMake (non-Windows)
-        if: runner.os != 'Windows'
-        run: cmake -B ./build -G "${{matrix.config.cmake_gen}}" -DCMAKE_CXX_COMPILER="${{matrix.config.cmake_cxx}}"
-
-      # Use a launcher for Windows
-      - name: Configure CMake (with launcher)
-        if: runner.os == 'Windows'
+      - name: Configure CMake
         run: cmake -B ./build -G "${{matrix.config.cmake_gen}}" -DCMAKE_CXX_COMPILER="${{matrix.config.cmake_cxx}}" -DCMAKE_CXX_COMPILER_LAUNCHER="${{matrix.config.cmake_cxx_launcher}}"
     
       - name: Build
