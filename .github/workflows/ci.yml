@@ -32,8 +32,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # NOTE: This cache is faster for non-Windows than ccache, but it may not
-      # work over time? It doesn't work well on Windows
+      # NOTE: This cache is faster for non-Windows builds than ccache, but it
+      # may not work over time? It doesn't work well for Windows builds
       # Recommend: use ccache for non-Windows and sccache for Windows (ccache is
       # also flakey on Windows)
       #
