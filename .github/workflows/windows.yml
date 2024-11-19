@@ -39,7 +39,14 @@ jobs:
         with:
           path: |
             ./build
-            ~/.cache/sccache/
+            ~/.cache/ccache
+            ~/.ccache
+            ~/.config/ccache
+            ~/Library/Caches/ccache
+            ${{ env.LOCALAPPDATA }}/ccache
+            ${{ env.XDG_CACHE_HOME }}/ccache
+            ${{ env.LOCALAPPDATA }}/Mozilla/sccache
+            ${{ env.XDG_CACHE_HOME }}/Mozilla/sccache
           key: ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', './vcpkg.json') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.config.compiler }}-${{ env.BUILD_TYPE }}-
