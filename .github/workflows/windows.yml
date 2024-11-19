@@ -19,7 +19,7 @@ jobs:
       matrix:
         config:
           #- { os: "ubuntu-24.04", compiler: "gcc", cmake_cxx: "/usr/bin/g++-14" }
-          #- { os: "ubuntu-24.04", compiler: "llvm", cmake_cxx: "/usr/lib/llvm-18/bin/clang++" }
+          - { os: "ubuntu-24.04", compiler: "llvm", cmake_cxx: "/usr/lib/llvm-18/bin/clang++" }
           #- { os: "macos-14", compiler: "gcc", cmake_cxx: "/opt/homebrew/bin/g++-14" }
           # NOTE: Won't compile; llvm not supported on arm?
           #- { os: "macos-14", compiler: "llvm", cmake_cxx: "/usr/lib/llvm-18/bin/clang++" }
@@ -33,6 +33,10 @@ jobs:
       - name: Run sccache-cache
         if: runner.os == 'Windows'
         uses: mozilla-actions/sccache-action@v0.0.6
+
+      - name: ccache
+        if: runner.os != 'Windows'
+        uses: hendrikmuhs/ccache-action@v1.2
 
       - name: Cache
         uses: actions/cache@v4
@@ -61,7 +65,7 @@ jobs:
         if: runner.os != 'Windows'
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-        run: cmake -G Ninja -B ./build -DCMAKE_CXX_COMPILER=${{matrix.config.cmake_cxx}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: cmake -G Ninja -B ./build -DCMAKE_CXX_COMPILER=${{matrix.config.cmake_cxx}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Configure CMake (Windows msvc)
         if: runner.os == 'Windows' && matrix.config.compiler == 'msvc'
